@@ -97,6 +97,24 @@ export const BottomNav: React.FC<BottomNavProps> = ({
             <span className="absolute bottom-1 w-8 h-1 rounded-full bg-primary" />
           )}
         </button>
+
+        {/* Talk to Us Tab (Disqus Community Forum) */}
+        <button
+          type="button"
+          aria-current={activeTab === 'talk-to-us' ? 'page' : undefined}
+          onClick={() => onTabChange('talk-to-us')}
+          className={`flex-1 flex flex-col items-center justify-center gap-1 h-full min-h-[44px] transition-colors relative focus:outline-none focus:ring-1 focus:ring-primary ${
+            activeTab === 'talk-to-us'
+              ? 'text-primary font-bold'
+              : 'text-secondary hover:text-on-surface font-medium'
+          }`}
+        >
+          <span className="material-symbols-outlined text-[24px]">forum</span>
+          <span className="font-sans text-[11px] tracking-tight">Talk to Us</span>
+          {activeTab === 'talk-to-us' && (
+            <span className="absolute bottom-1 w-8 h-1 rounded-full bg-primary" />
+          )}
+        </button>
       </div>
     </nav>
   );

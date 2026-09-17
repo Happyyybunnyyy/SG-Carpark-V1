@@ -1,5 +1,5 @@
 export type VehicleType = 'cars' | 'bikes' | 'heavy';
-export type TabType = 'carparks' | 'nearby-map' | 'erp-rates' | 'saved';
+export type TabType = 'carparks' | 'nearby-map' | 'erp-rates' | 'saved' | 'talk-to-us';
 export type LotStatus = 'available' | 'limited' | 'full';
 
 export interface RateItem {

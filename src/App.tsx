@@ -21,6 +21,7 @@ import { ProfileModal } from './components/ProfileModal';
 import { MapView } from './components/MapView';
 import { ErpRatesView } from './components/ErpRatesView';
 import { SavedView } from './components/SavedView';
+import { TalkToUsView } from './components/TalkToUsView';
 
 export default function App() {
   const [carparksData, setCarparksData] = useState<Carpark[]>(CARPARKS);
@@ -423,6 +424,10 @@ export default function App() {
               setSelectedZone('Orchard / Somerset');
             }}
           />
+        )}
+
+        {activeTab === 'talk-to-us' && (
+          <TalkToUsView onBackToCarparks={() => setActiveTab('carparks')} />
         )}
       </main>
 
