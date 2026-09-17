@@ -29,6 +29,8 @@ export default function App() {
   const [selectedVehicle, setSelectedVehicle] = useState<VehicleType>('cars');
   const [activeTab, setActiveTab] = useState<TabType>('carparks');
   const [simulatedTimeLabel, setSimulatedTimeLabel] = useState<string>('Now 2:30 PM');
+  const [simulatedPeriodType, setSimulatedPeriodType] = useState<'day' | 'evening' | 'weekend'>('day');
+  const [simulatedDurationHours, setSimulatedDurationHours] = useState<number>(2);
 
   // Filter state
   const [filters, setFilters] = useState<FilterState>({
@@ -41,6 +43,15 @@ export default function App() {
     minGracePeriod: false,
     maxHeightFilter: 'Any',
   });
+
+  const activeFilterCount = useMemo(() => {
+    let count = 0;
+    if (filters.onlyAvailable) count++;
+    if (filters.evOnly) count++;
+    if (filters.minGracePeriod) count++;
+    if (filters.maxHeightFilter !== 'Any') count++;
+    return count;
+  }, [filters]);
 
   // Saved carparks persistence
   const [savedIds, setSavedIds] = useState<string[]>(() => {
@@ -76,7 +87,7 @@ export default function App() {
     setToastMessage(msg);
     setTimeout(() => {
       setToastMessage((prev) => (prev === msg ? null : prev));
-    }, 2400);
+    }, 2500);
   };
 
   const handleToggleSave = (id: string) => {
@@ -113,7 +124,15 @@ export default function App() {
     const currentIndex = sortCycle.indexOf(filters.sortBy);
     const nextSort = sortCycle[(currentIndex + 1) % sortCycle.length];
     setFilters((prev) => ({ ...prev, sortBy: nextSort }));
-    showToast(`Sorted by: ${nextSort.toUpperCase()}`);
+    const sortLabel =
+      nextSort === 'rate'
+        ? 'Cheapest Rate'
+        : nextSort === 'distance'
+        ? 'Nearest Distance'
+        : nextSort === 'lots'
+        ? 'Most Available Lots'
+        : 'Longest Grace Period';
+    showToast(`Sorted by: ${sortLabel}`);
   };
 
   // Filtered and sorted carparks
@@ -222,7 +241,6 @@ export default function App() {
               selectedZone={selectedZone}
               onZoneSelect={(zone) => {
                 setSelectedZone(zone);
-                // Clear search if selecting specific zone for cleaner listing
                 if (zone !== 'All SG') {
                   setSearchQuery('');
                 }
@@ -232,7 +250,10 @@ export default function App() {
               onOpenFilter={() => setFilterModalOpen(true)}
               onOpenTimeSimulator={() => setTimeSimulatorModalOpen(true)}
               simulatedTimeLabel={simulatedTimeLabel}
+              activeFilterCount={activeFilterCount}
               searchInputRef={searchInputRef}
+              filters={filters}
+              onUpdateFilters={(newVals) => setFilters((prev) => ({ ...prev, ...newVals }))}
             />
 
             {/* Live Telemetry Status Banner */}
@@ -247,15 +268,15 @@ export default function App() {
             {/* Carpark Cards Section */}
             <section className="max-w-2xl mx-auto w-full px-4 flex flex-col gap-3 pt-1">
               {filteredCarparks.length === 0 ? (
-                <div className="bg-white rounded-xl p-8 text-center border border-surface-container my-4 space-y-2">
-                  <span className="material-symbols-outlined text-[32px] text-secondary">
-                    search_off
-                  </span>
-                  <h3 className="font-headline font-semibold text-[16px] text-on-surface">
+                <div className="bg-white rounded-2xl p-8 text-center border border-surface-container my-4 space-y-3 shadow-xs">
+                  <div className="w-12 h-12 rounded-xl bg-surface-container flex items-center justify-center mx-auto text-secondary">
+                    <span className="material-symbols-outlined text-[28px]">search_off</span>
+                  </div>
+                  <h3 className="font-headline font-bold text-[17px] text-on-surface">
                     No Carparks Match Your Filters
                   </h3>
-                  <p className="text-[12px] text-secondary max-w-xs mx-auto">
-                    Try clearing search criteria or resetting filters to view all Singapore
+                  <p className="text-[13px] text-secondary max-w-xs mx-auto">
+                    Try clearing search criteria or resetting filters to view all available
                     carparks.
                   </p>
                   <button
@@ -273,10 +294,11 @@ export default function App() {
                         minGracePeriod: false,
                         maxHeightFilter: 'Any',
                       });
+                      showToast('Filters reset to default');
                     }}
-                    className="mt-2 px-4 py-2 rounded-lg bg-surface-container text-primary font-headline font-semibold text-[12px] hover:bg-surface-container-high transition-colors"
+                    className="mt-2 min-h-[44px] px-5 py-2.5 rounded-xl bg-primary hover:bg-primary-hover text-white font-headline font-semibold text-[13px] shadow-xs transition-colors focus:outline-none focus:ring-2 focus:ring-primary/40"
                   >
-                    Reset Filters
+                    Reset All Filters
                   </button>
                 </div>
               ) : (
@@ -285,6 +307,8 @@ export default function App() {
                     key={carpark.id}
                     carpark={carpark}
                     vehicle={selectedVehicle}
+                    durationHours={simulatedDurationHours}
+                    timePeriod={simulatedPeriodType}
                     isSaved={savedIds.includes(carpark.id)}
                     onToggleSave={handleToggleSave}
                     onOpenSchedule={(cp) => setScheduleModalCarpark(cp)}
@@ -306,17 +330,24 @@ export default function App() {
             selectedZone={selectedZone}
             onSelectCarpark={(cp) => setScheduleModalCarpark(cp)}
             onNavigate={(cp) => setNavigationModalCarpark(cp)}
+            onBackToList={() => setActiveTab('carparks')}
           />
         )}
 
         {activeTab === 'erp-rates' && (
-          <ErpRatesView vehicle={selectedVehicle} onVehicleChange={setSelectedVehicle} />
+          <ErpRatesView
+            vehicle={selectedVehicle}
+            onVehicleChange={setSelectedVehicle}
+            onBackToCarparks={() => setActiveTab('carparks')}
+          />
         )}
 
         {activeTab === 'saved' && (
           <SavedView
             savedCarparks={savedCarparks}
             vehicle={selectedVehicle}
+            durationHours={simulatedDurationHours}
+            timePeriod={simulatedPeriodType}
             onToggleSave={handleToggleSave}
             onOpenSchedule={(cp) => setScheduleModalCarpark(cp)}
             onNavigate={(cp) => setNavigationModalCarpark(cp)}
@@ -350,6 +381,7 @@ export default function App() {
         isOpen={filterModalOpen}
         onClose={() => setFilterModalOpen(false)}
         filters={filters}
+        matchingCount={filteredCarparks.length}
         onUpdateFilters={(newVals) => setFilters((prev) => ({ ...prev, ...newVals }))}
         onResetFilters={() => {
           setFilters({
@@ -370,9 +402,12 @@ export default function App() {
         isOpen={timeSimulatorModalOpen}
         onClose={() => setTimeSimulatorModalOpen(false)}
         currentTimeLabel={simulatedTimeLabel}
-        onSelectTime={(label) => {
+        currentDurationHours={simulatedDurationHours}
+        onSelectTime={(label, type, duration) => {
           setSimulatedTimeLabel(label);
-          showToast(`Simulating tariff for: ${label}`);
+          setSimulatedPeriodType(type);
+          setSimulatedDurationHours(duration);
+          showToast(`Simulating ${duration}h parking at ${label}`);
         }}
       />
 
@@ -402,8 +437,14 @@ export default function App() {
 
       {/* Floating Toast Feedback */}
       {toastMessage && (
-        <div className="fixed bottom-20 left-1/2 -translate-x-1/2 z-50 bg-slate-900/90 text-white text-[12px] font-medium px-4 py-2 rounded-full shadow-lg backdrop-blur-md animate-in fade-in duration-150 flex items-center gap-2">
-          <span className="material-symbols-outlined text-[16px] text-lot-available">check</span>
+        <div
+          role="status"
+          aria-live="polite"
+          className="fixed bottom-20 left-1/2 -translate-x-1/2 z-50 bg-slate-900 text-white text-[13px] font-medium px-4 py-2.5 rounded-full shadow-lg backdrop-blur-md animate-in fade-in duration-150 flex items-center gap-2 border border-slate-700"
+        >
+          <span className="material-symbols-outlined text-[18px] text-emerald-400">
+            check_circle
+          </span>
           <span>{toastMessage}</span>
         </div>
       )}

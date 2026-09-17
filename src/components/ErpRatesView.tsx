@@ -5,9 +5,14 @@ import { VehicleType } from '../types';
 interface ErpRatesViewProps {
   vehicle: VehicleType;
   onVehicleChange: (v: VehicleType) => void;
+  onBackToCarparks?: () => void;
 }
 
-export const ErpRatesView: React.FC<ErpRatesViewProps> = ({ vehicle, onVehicleChange }) => {
+export const ErpRatesView: React.FC<ErpRatesViewProps> = ({
+  vehicle,
+  onVehicleChange,
+  onBackToCarparks,
+}) => {
   const [filterZone, setFilterZone] = useState<string>('All');
   const [searchErp, setSearchErp] = useState<string>('');
 
@@ -25,81 +30,86 @@ export const ErpRatesView: React.FC<ErpRatesViewProps> = ({ vehicle, onVehicleCh
   });
 
   return (
-    <div className="max-w-2xl mx-auto px-4 py-3 pb-24 space-y-3">
-      {/* ERP Header Banner */}
-      <div className="bg-gradient-to-br from-erp-active/15 to-erp-active/5 border border-erp-active/20 rounded-xl p-4 shadow-xs">
-        <div className="flex items-center gap-2 mb-1">
-          <div className="w-8 h-8 rounded-lg bg-erp-active text-white flex items-center justify-center">
-            <span className="material-symbols-outlined text-[20px]">toll</span>
-          </div>
-          <div>
-            <h2 className="font-headline font-bold text-[17px] text-on-surface">
-              Singapore ERP 2.0 Live Monitor
-            </h2>
-            <p className="text-[11px] text-secondary">
-              Land Transport Authority (LTA) Gantry Status & Toll Schedules
-            </p>
-          </div>
+    <div className="max-w-2xl mx-auto w-full px-4 py-3 pb-24 space-y-3">
+      {/* Back Navigation & Title */}
+      <div className="flex items-center gap-2">
+        {onBackToCarparks && (
+          <button
+            type="button"
+            onClick={onBackToCarparks}
+            aria-label="Back to carparks directory"
+            className="w-10 h-10 rounded-xl bg-white border border-surface-container flex items-center justify-center text-secondary hover:text-on-surface hover:bg-surface-container-low transition-colors focus:outline-none focus:ring-2 focus:ring-primary/40"
+          >
+            <span className="material-symbols-outlined text-[20px]">arrow_back</span>
+          </button>
+        )}
+        <div>
+          <h2 className="font-headline font-bold text-[18px] text-on-surface">
+            Singapore ERP 2.0 Live Monitor
+          </h2>
+          <p className="text-[12px] text-secondary">
+            Live toll status & electronic road pricing schedules
+          </p>
         </div>
+      </div>
 
-        {/* Vehicle Segmented Toggle */}
-        <div className="flex items-center gap-2 mt-3 pt-2 border-t border-erp-active/15">
-          <span className="text-[11px] font-semibold text-secondary uppercase tracking-wider">
-            Vehicle:
-          </span>
-          <div className="flex-1 flex bg-white/80 p-1 rounded-lg border border-erp-active/20 gap-1">
-            <button
-              type="button"
-              onClick={() => onVehicleChange('cars')}
-              className={`flex-1 py-1 rounded text-center text-[11px] font-semibold flex items-center justify-center gap-1 transition-all ${
-                vehicle === 'cars'
-                  ? 'bg-erp-active text-white shadow-xs'
-                  : 'text-secondary hover:text-on-surface'
-              }`}
-            >
-              <span className="material-symbols-outlined text-[14px]">directions_car</span>
-              <span>Cars</span>
-            </button>
-            <button
-              type="button"
-              onClick={() => onVehicleChange('bikes')}
-              className={`flex-1 py-1 rounded text-center text-[11px] font-semibold flex items-center justify-center gap-1 transition-all ${
-                vehicle === 'bikes'
-                  ? 'bg-erp-active text-white shadow-xs'
-                  : 'text-secondary hover:text-on-surface'
-              }`}
-            >
-              <span className="material-symbols-outlined text-[14px]">two_wheeler</span>
-              <span>Motorcycles</span>
-            </button>
-            <button
-              type="button"
-              onClick={() => onVehicleChange('heavy')}
-              className={`flex-1 py-1 rounded text-center text-[11px] font-semibold flex items-center justify-center gap-1 transition-all ${
-                vehicle === 'heavy'
-                  ? 'bg-erp-active text-white shadow-xs'
-                  : 'text-secondary hover:text-on-surface'
-              }`}
-            >
-              <span className="material-symbols-outlined text-[14px]">local_shipping</span>
-              <span>Heavy</span>
-            </button>
-          </div>
+      {/* Vehicle Segmented Toggle */}
+      <div className="bg-white rounded-2xl p-3.5 border border-surface-container shadow-xs space-y-2">
+        <span className="text-[11px] font-bold text-secondary uppercase tracking-wider block">
+          Toll Rate for Vehicle Class:
+        </span>
+        <div className="flex bg-surface-container p-1 rounded-xl gap-1">
+          <button
+            type="button"
+            onClick={() => onVehicleChange('cars')}
+            className={`flex-1 min-h-[40px] rounded-lg text-center text-[12px] font-semibold flex items-center justify-center gap-1.5 transition-all focus:outline-none focus:ring-2 focus:ring-primary/40 ${
+              vehicle === 'cars'
+                ? 'bg-white text-primary shadow-xs'
+                : 'text-secondary hover:text-on-surface'
+            }`}
+          >
+            <span className="material-symbols-outlined text-[16px]">directions_car</span>
+            <span>Cars</span>
+          </button>
+          <button
+            type="button"
+            onClick={() => onVehicleChange('bikes')}
+            className={`flex-1 min-h-[40px] rounded-lg text-center text-[12px] font-semibold flex items-center justify-center gap-1.5 transition-all focus:outline-none focus:ring-2 focus:ring-primary/40 ${
+              vehicle === 'bikes'
+                ? 'bg-white text-primary shadow-xs'
+                : 'text-secondary hover:text-on-surface'
+            }`}
+          >
+            <span className="material-symbols-outlined text-[16px]">two_wheeler</span>
+            <span>Bikes</span>
+          </button>
+          <button
+            type="button"
+            onClick={() => onVehicleChange('heavy')}
+            className={`flex-1 min-h-[40px] rounded-lg text-center text-[12px] font-semibold flex items-center justify-center gap-1.5 transition-all focus:outline-none focus:ring-2 focus:ring-primary/40 ${
+              vehicle === 'heavy'
+                ? 'bg-white text-primary shadow-xs'
+                : 'text-secondary hover:text-on-surface'
+            }`}
+          >
+            <span className="material-symbols-outlined text-[16px]">local_shipping</span>
+            <span>Heavy</span>
+          </button>
         </div>
       </div>
 
       {/* Search & Zones */}
       <div className="flex flex-col gap-2">
         <div className="relative">
-          <span className="absolute left-3 top-2.5 text-secondary material-symbols-outlined text-[18px]">
+          <span className="absolute left-3.5 top-3 text-secondary material-symbols-outlined text-[18px]">
             search
           </span>
           <input
             type="text"
-            placeholder="Search gantry by expressway, road or zone..."
+            placeholder="Search gantry by expressway (CTE, PIE) or road..."
             value={searchErp}
             onChange={(e) => setSearchErp(e.target.value)}
-            className="w-full h-10 pl-9 pr-3 rounded-xl bg-white border border-surface-container text-[13px] shadow-xs focus:outline-none focus:ring-1 focus:ring-erp-active"
+            className="w-full h-11 pl-10 pr-3 rounded-xl bg-white border border-surface-container text-[13px] shadow-xs focus:outline-none focus:ring-2 focus:ring-primary/30"
           />
         </div>
 
@@ -109,9 +119,9 @@ export const ErpRatesView: React.FC<ErpRatesViewProps> = ({ vehicle, onVehicleCh
               key={zone}
               type="button"
               onClick={() => setFilterZone(zone)}
-              className={`px-3 py-1 rounded-full text-[12px] whitespace-nowrap transition-all ${
+              className={`min-h-[36px] px-3.5 py-1.5 rounded-full text-[12px] whitespace-nowrap transition-all focus:outline-none focus:ring-2 focus:ring-primary/40 ${
                 filterZone === zone
-                  ? 'bg-erp-active text-white font-semibold shadow-xs'
+                  ? 'bg-primary text-white font-bold shadow-xs'
                   : 'bg-white border border-surface-container text-secondary hover:text-on-surface'
               }`}
             >
@@ -122,64 +132,82 @@ export const ErpRatesView: React.FC<ErpRatesViewProps> = ({ vehicle, onVehicleCh
       </div>
 
       {/* Gantries List */}
-      <div className="space-y-2.5">
-        {filteredGantries.map((gantry) => {
-          const rateToDisplay =
-            vehicle === 'bikes'
-              ? gantry.vehicleTypeRates.bikes
-              : vehicle === 'heavy'
-              ? gantry.vehicleTypeRates.heavy
-              : gantry.vehicleTypeRates.cars;
-
-          return (
-            <div
-              key={gantry.id}
-              className="bg-white rounded-xl p-3.5 border border-surface-container shadow-xs space-y-2"
+      <div className="space-y-3">
+        {filteredGantries.length === 0 ? (
+          <div className="bg-white rounded-2xl p-8 text-center border border-surface-container space-y-2">
+            <span className="material-symbols-outlined text-[32px] text-secondary">
+              search_off
+            </span>
+            <p className="font-semibold text-on-surface text-[14px]">No ERP Gantries Found</p>
+            <button
+              type="button"
+              onClick={() => {
+                setSearchErp('');
+                setFilterZone('All');
+              }}
+              className="px-4 py-2 rounded-xl bg-surface-container text-primary font-bold text-[12px]"
             >
-              <div className="flex items-start justify-between gap-2">
-                <div>
-                  <div className="flex items-center gap-1.5">
-                    <span className="font-mono text-[10px] font-bold px-1.5 py-0.5 rounded bg-surface-container text-secondary">
-                      {gantry.zone}
-                    </span>
-                    <h3 className="font-headline font-semibold text-[14px] text-on-surface">
-                      {gantry.name}
-                    </h3>
+              Reset Filters
+            </button>
+          </div>
+        ) : (
+          filteredGantries.map((gantry) => {
+            const rateToDisplay =
+              vehicle === 'bikes'
+                ? gantry.vehicleTypeRates.bikes
+                : vehicle === 'heavy'
+                ? gantry.vehicleTypeRates.heavy
+                : gantry.vehicleTypeRates.cars;
+
+            return (
+              <div
+                key={gantry.id}
+                className="bg-white rounded-2xl p-4 border border-surface-container shadow-xs space-y-2.5"
+              >
+                <div className="flex items-start justify-between gap-2">
+                  <div>
+                    <div className="flex items-center gap-1.5">
+                      <span className="font-mono text-[10px] font-bold px-2 py-0.5 rounded-md bg-surface-container text-secondary">
+                        {gantry.zone}
+                      </span>
+                      <h3 className="font-headline font-bold text-[15px] text-on-surface">
+                        {gantry.name}
+                      </h3>
+                    </div>
+                    <p className="text-[12px] text-secondary mt-0.5">{gantry.road}</p>
                   </div>
-                  <p className="text-[11px] text-secondary mt-0.5">{gantry.road}</p>
+
+                  <div
+                    className={`px-3 py-1.5 rounded-xl text-right border ${
+                      gantry.status === 'active'
+                        ? 'bg-rose-50 text-rose-900 border-rose-200'
+                        : 'bg-surface-container-low text-secondary border-surface-container'
+                    }`}
+                  >
+                    <span className="block text-[9px] uppercase font-bold tracking-wider">
+                      {gantry.status === 'active' ? 'ACTIVE NOW' : 'NEXT CHARGE'}
+                    </span>
+                    <span className="font-mono text-[18px] font-bold text-on-surface">
+                      ${rateToDisplay.toFixed(2)}
+                    </span>
+                  </div>
                 </div>
 
-                <div
-                  className={`px-2.5 py-1 rounded-lg text-right ${
-                    gantry.status === 'active'
-                      ? 'bg-erp-active/10 text-erp-active'
-                      : 'bg-surface-container text-secondary'
-                  }`}
-                >
-                  <span className="block text-[9px] uppercase font-bold tracking-wider">
-                    {gantry.status === 'active' ? 'ACTIVE NOW' : 'NEXT CHARGE'}
+                <div className="pt-2 border-t border-surface-container flex items-center justify-between text-[12px] text-secondary">
+                  <span className="flex items-center gap-1">
+                    <span className="material-symbols-outlined text-[15px]">schedule</span>
+                    <span>Toll Hours: {gantry.activeHours}</span>
                   </span>
-                  <span className="font-mono text-[16px] font-bold">
-                    ${rateToDisplay.toFixed(2)}
+                  <span className="font-semibold text-on-surface">
+                    {gantry.status === 'active'
+                      ? 'Tolling in effect'
+                      : `Charges start at ${gantry.nextChargeTime}`}
                   </span>
                 </div>
               </div>
-
-              <div className="pt-2 border-t border-surface-container flex items-center justify-between text-[11px] text-secondary">
-                <span className="flex items-center gap-1">
-                  <span className="material-symbols-outlined text-[14px]">schedule</span>
-                  <span>Hours: {gantry.activeHours}</span>
-                </span>
-                <span className="font-medium text-on-surface">
-                  Status:{' '}
-                  {gantry.status === 'active'
-                    ? 'Tolling in effect'
-                    : `Turns on at ${gantry.nextChargeTime}`}
-                </span>
-              </div>
-            </div>
-          );
-        })}
+            );
+          })
+        )}
       </div>
     </div>
   );

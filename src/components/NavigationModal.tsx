@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Carpark } from '../types';
 
 interface NavigationModalProps {
@@ -9,6 +9,16 @@ interface NavigationModalProps {
 export const NavigationModal: React.FC<NavigationModalProps> = ({ carpark, onClose }) => {
   const [copied, setCopied] = useState(false);
 
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') onClose();
+    };
+    if (carpark) {
+      window.addEventListener('keydown', handleKeyDown);
+    }
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [carpark, onClose]);
+
   if (!carpark) return null;
 
   const encodedQuery = encodeURIComponent(`${carpark.name} ${carpark.address} Singapore`);
@@ -18,59 +28,68 @@ export const NavigationModal: React.FC<NavigationModalProps> = ({ carpark, onClo
   const handleCopy = () => {
     navigator.clipboard.writeText(`${carpark.name}, ${carpark.address}, Singapore`);
     setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
+    setTimeout(() => setCopied(false), 2400);
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/50 backdrop-blur-xs p-0 sm:p-4 animate-in fade-in duration-200">
+    <div
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="nav-modal-title"
+      className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/60 backdrop-blur-xs p-0 sm:p-4 animate-in fade-in duration-200"
+      onClick={onClose}
+    >
       <div
         className="relative w-full max-w-sm bg-white rounded-t-2xl sm:rounded-2xl shadow-2xl overflow-hidden animate-in slide-in-from-bottom-5 duration-200"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
-        <div className="p-4 border-b border-surface-container flex items-center justify-between bg-surface-container-low/50">
-          <div className="flex items-center gap-2">
-            <span className="material-symbols-outlined text-primary text-[20px]">navigation</span>
+        <div className="p-4 border-b border-surface-container flex items-center justify-between bg-surface-container-low/60">
+          <div className="flex items-center gap-2.5">
+            <div className="w-8 h-8 rounded-lg bg-primary/10 text-primary flex items-center justify-center">
+              <span className="material-symbols-outlined text-[20px]">navigation</span>
+            </div>
             <div>
-              <h3 className="font-headline font-bold text-[16px] text-on-surface truncate">
-                Navigate to {carpark.name}
+              <h3 id="nav-modal-title" className="font-headline font-bold text-[17px] text-on-surface truncate">
+                Get Directions
               </h3>
-              <p className="text-[11px] text-secondary">{carpark.address}</p>
+              <p className="text-[12px] text-secondary truncate max-w-[210px]">{carpark.name}</p>
             </div>
           </div>
           <button
             type="button"
             onClick={onClose}
-            className="w-8 h-8 rounded-full flex items-center justify-center text-secondary hover:text-on-surface hover:bg-surface-container transition-colors"
+            aria-label="Close navigation options"
+            className="w-10 h-10 rounded-full flex items-center justify-center text-secondary hover:text-on-surface hover:bg-surface-container transition-colors focus:outline-none focus:ring-2 focus:ring-primary/40"
           >
-            <span className="material-symbols-outlined text-[20px]">close</span>
+            <span className="material-symbols-outlined text-[22px]">close</span>
           </button>
         </div>
 
         {/* Content */}
-        <div className="p-4 space-y-2.5">
-          <div className="p-2.5 rounded-lg bg-surface-container-low text-[12px] flex items-center justify-between">
-            <span className="text-secondary">Estimated Arrival</span>
-            <span className="font-mono font-bold text-on-surface">~4 - 7 mins drive</span>
+        <div className="p-4 sm:p-5 space-y-3">
+          <div className="p-3 rounded-xl bg-surface-container-low text-[13px] flex items-center justify-between border border-surface-container">
+            <span className="text-secondary">Destination Distance</span>
+            <span className="font-mono font-bold text-on-surface">{carpark.distance} away</span>
           </div>
 
-          {/* Navigation app links */}
-          <div className="space-y-2">
+          {/* Navigation app links (Min 48px touch targets) */}
+          <div className="space-y-2.5">
             <a
               href={googleMapsUrl}
               target="_blank"
               rel="noopener noreferrer"
-              className="w-full p-3 rounded-xl border border-surface-container hover:border-primary/40 bg-white flex items-center justify-between group transition-colors shadow-2xs"
+              className="min-h-[50px] w-full p-3.5 rounded-xl border border-surface-container hover:border-primary/50 bg-white flex items-center justify-between group transition-all shadow-2xs focus:outline-none focus:ring-2 focus:ring-primary/40"
             >
-              <div className="flex items-center gap-2.5">
-                <span className="material-symbols-outlined text-lot-available text-[20px]">
+              <div className="flex items-center gap-3">
+                <span className="material-symbols-outlined text-emerald-700 text-[22px]">
                   map
                 </span>
-                <span className="font-headline font-semibold text-[13px] text-on-surface">
-                  Open in Google Maps
+                <span className="font-headline font-bold text-[14px] text-on-surface">
+                  Google Maps
                 </span>
               </div>
-              <span className="material-symbols-outlined text-secondary text-[16px] group-hover:translate-x-0.5 transition-transform">
+              <span className="material-symbols-outlined text-secondary text-[18px] group-hover:translate-x-0.5 transition-transform">
                 open_in_new
               </span>
             </a>
@@ -79,17 +98,17 @@ export const NavigationModal: React.FC<NavigationModalProps> = ({ carpark, onClo
               href={wazeUrl}
               target="_blank"
               rel="noopener noreferrer"
-              className="w-full p-3 rounded-xl border border-surface-container hover:border-primary/40 bg-white flex items-center justify-between group transition-colors shadow-2xs"
+              className="min-h-[50px] w-full p-3.5 rounded-xl border border-surface-container hover:border-primary/50 bg-white flex items-center justify-between group transition-all shadow-2xs focus:outline-none focus:ring-2 focus:ring-primary/40"
             >
-              <div className="flex items-center gap-2.5">
-                <span className="material-symbols-outlined text-tertiary text-[20px]">
+              <div className="flex items-center gap-3">
+                <span className="material-symbols-outlined text-blue-700 text-[22px]">
                   directions_car
                 </span>
-                <span className="font-headline font-semibold text-[13px] text-on-surface">
-                  Open in Waze
+                <span className="font-headline font-bold text-[14px] text-on-surface">
+                  Waze Live Navigation
                 </span>
               </div>
-              <span className="material-symbols-outlined text-secondary text-[16px] group-hover:translate-x-0.5 transition-transform">
+              <span className="material-symbols-outlined text-secondary text-[18px] group-hover:translate-x-0.5 transition-transform">
                 open_in_new
               </span>
             </a>
@@ -97,23 +116,19 @@ export const NavigationModal: React.FC<NavigationModalProps> = ({ carpark, onClo
             <button
               type="button"
               onClick={handleCopy}
-              className="w-full p-3 rounded-xl border border-surface-container hover:border-primary/40 bg-white flex items-center justify-between group transition-colors shadow-2xs text-left"
+              className="min-h-[50px] w-full p-3.5 rounded-xl border border-surface-container hover:border-primary/50 bg-white flex items-center justify-between group transition-all shadow-2xs text-left focus:outline-none focus:ring-2 focus:ring-primary/40"
             >
-              <div className="flex items-center gap-2.5">
-                <span className="material-symbols-outlined text-secondary text-[20px]">
-                  content_copy
+              <div className="flex items-center gap-3">
+                <span className="material-symbols-outlined text-secondary text-[22px]">
+                  {copied ? 'check' : 'content_copy'}
                 </span>
-                <span className="font-headline font-semibold text-[13px] text-on-surface">
-                  {copied ? 'Address Copied!' : 'Copy Address & Postal Code'}
+                <span className="font-headline font-bold text-[14px] text-on-surface">
+                  {copied ? 'Address Copied to Clipboard!' : 'Copy Postal Code & Address'}
                 </span>
               </div>
-              {copied ? (
-                <span className="material-symbols-outlined text-lot-available text-[16px]">
-                  check
-                </span>
-              ) : (
-                <span className="material-symbols-outlined text-secondary text-[16px]">
-                  content_copy
+              {copied && (
+                <span className="text-[11px] font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200">
+                  COPIED
                 </span>
               )}
             </button>
@@ -121,11 +136,11 @@ export const NavigationModal: React.FC<NavigationModalProps> = ({ carpark, onClo
         </div>
 
         {/* Footer */}
-        <div className="p-3 border-t border-surface-container bg-surface-container-low/30">
+        <div className="p-4 border-t border-surface-container bg-surface-container-low/40">
           <button
             type="button"
             onClick={onClose}
-            className="w-full h-10 rounded-lg bg-surface-container hover:bg-surface-container-high text-on-surface font-headline font-semibold text-[13px] transition-colors"
+            className="w-full h-11 rounded-xl bg-white border border-surface-container hover:bg-surface-container-low text-on-surface font-headline font-semibold text-[13px] transition-colors focus:outline-none focus:ring-2 focus:ring-primary/40 shadow-2xs"
           >
             Done
           </button>

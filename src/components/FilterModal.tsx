@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { FilterState } from '../types';
 
 interface FilterModalProps {
@@ -7,6 +7,7 @@ interface FilterModalProps {
   filters: FilterState;
   onUpdateFilters: (newFilters: Partial<FilterState>) => void;
   onResetFilters: () => void;
+  matchingCount?: number;
 }
 
 export const FilterModal: React.FC<FilterModalProps> = ({
@@ -15,38 +16,63 @@ export const FilterModal: React.FC<FilterModalProps> = ({
   filters,
   onUpdateFilters,
   onResetFilters,
+  matchingCount,
 }) => {
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') onClose();
+    };
+    if (isOpen) {
+      window.addEventListener('keydown', handleKeyDown);
+    }
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [isOpen, onClose]);
+
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/50 backdrop-blur-xs p-0 sm:p-4 animate-in fade-in duration-200">
+    <div
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="filter-modal-title"
+      className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/60 backdrop-blur-xs p-0 sm:p-4 animate-in fade-in duration-200"
+      onClick={onClose}
+    >
       <div
-        className="relative w-full max-w-md bg-white rounded-t-2xl sm:rounded-2xl max-h-[85vh] flex flex-col shadow-2xl overflow-hidden animate-in slide-in-from-bottom-5 duration-200"
+        className="relative w-full max-w-md bg-white rounded-t-2xl sm:rounded-2xl max-h-[88vh] flex flex-col shadow-2xl overflow-hidden animate-in slide-in-from-bottom-5 duration-200"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
-        <div className="p-4 border-b border-surface-container flex items-center justify-between bg-surface-container-low/50">
+        <div className="p-4 border-b border-surface-container flex items-center justify-between bg-surface-container-low/60">
           <div className="flex items-center gap-2">
-            <span className="material-symbols-outlined text-primary text-[20px]">tune</span>
-            <h3 className="font-headline font-bold text-[17px] text-on-surface">Filter & Sort</h3>
+            <div className="w-8 h-8 rounded-lg bg-primary/10 text-primary flex items-center justify-center">
+              <span className="material-symbols-outlined text-[20px]">tune</span>
+            </div>
+            <div>
+              <h3 id="filter-modal-title" className="font-headline font-bold text-[18px] text-on-surface">
+                Filter & Sort
+              </h3>
+              <p className="text-[12px] text-secondary">Tailor rates, lots, and vehicle clearance</p>
+            </div>
           </div>
           <button
             type="button"
             onClick={onClose}
-            className="w-8 h-8 rounded-full flex items-center justify-center text-secondary hover:text-on-surface hover:bg-surface-container transition-colors"
+            aria-label="Close filter options"
+            className="w-10 h-10 rounded-full flex items-center justify-center text-secondary hover:text-on-surface hover:bg-surface-container transition-colors focus:outline-none focus:ring-2 focus:ring-primary/40"
           >
-            <span className="material-symbols-outlined text-[20px]">close</span>
+            <span className="material-symbols-outlined text-[22px]">close</span>
           </button>
         </div>
 
         {/* Filter options */}
-        <div className="p-4 overflow-y-auto space-y-4 no-scrollbar">
+        <div className="p-4 sm:p-5 overflow-y-auto space-y-4 no-scrollbar">
           {/* Sort By */}
           <div>
-            <label className="block text-[11px] uppercase font-bold text-secondary tracking-wider mb-2">
-              Sort By
+            <label className="block text-[11px] uppercase font-bold text-secondary tracking-wider mb-2.5">
+              Sort Carparks By
             </label>
-            <div className="grid grid-cols-2 gap-2">
+            <div className="grid grid-cols-2 gap-2.5">
               {[
                 { id: 'rate', label: 'Cheapest Rate', icon: 'payments' },
                 { id: 'distance', label: 'Nearest Distance', icon: 'near_me' },
@@ -61,13 +87,13 @@ export const FilterModal: React.FC<FilterModalProps> = ({
                     onClick={() =>
                       onUpdateFilters({ sortBy: item.id as FilterState['sortBy'] })
                     }
-                    className={`p-2.5 rounded-lg border text-left text-[12px] font-medium flex items-center gap-2 transition-all ${
+                    className={`min-h-[48px] p-3 rounded-xl border text-left text-[13px] font-medium flex items-center gap-2.5 transition-all focus:outline-none focus:ring-2 focus:ring-primary/40 ${
                       isSelected
-                        ? 'border-primary bg-primary/5 text-primary font-semibold'
-                        : 'border-surface-container bg-surface-container-low text-secondary hover:text-on-surface'
+                        ? 'border-primary bg-primary/10 text-primary font-bold shadow-2xs'
+                        : 'border-surface-container bg-white text-secondary hover:text-on-surface hover:bg-surface-container-low'
                     }`}
                   >
-                    <span className="material-symbols-outlined text-[16px]">{item.icon}</span>
+                    <span className="material-symbols-outlined text-[18px]">{item.icon}</span>
                     <span className="truncate">{item.label}</span>
                   </button>
                 );
@@ -77,52 +103,67 @@ export const FilterModal: React.FC<FilterModalProps> = ({
 
           {/* Availability & Facilities Toggles */}
           <div>
-            <label className="block text-[11px] uppercase font-bold text-secondary tracking-wider mb-2">
-              Carpark Features
+            <label className="block text-[11px] uppercase font-bold text-secondary tracking-wider mb-2.5">
+              Preferences & Amenities
             </label>
-            <div className="space-y-2">
-              <label className="flex items-center justify-between p-2.5 rounded-lg bg-surface-container-low border border-surface-container cursor-pointer hover:bg-surface-container transition-colors">
-                <div className="flex items-center gap-2 text-[13px] font-medium text-on-surface">
-                  <span className="material-symbols-outlined text-lot-available text-[18px]">
+            <div className="space-y-2.5">
+              <label className="min-h-[50px] flex items-center justify-between p-3 rounded-xl bg-white border border-surface-container cursor-pointer hover:bg-surface-container-low transition-colors">
+                <div className="flex items-center gap-2.5 text-[13px] font-semibold text-on-surface">
+                  <span className="material-symbols-outlined text-emerald-700 text-[20px]">
                     check_circle
                   </span>
-                  <span>Available Lots Only (Hide Full)</span>
+                  <div>
+                    <span>Available Lots Only</span>
+                    <span className="block text-[11px] text-secondary font-normal">
+                      Hide full carparks with 0 lots
+                    </span>
+                  </div>
                 </div>
                 <input
                   type="checkbox"
                   checked={filters.onlyAvailable}
                   onChange={(e) => onUpdateFilters({ onlyAvailable: e.target.checked })}
-                  className="w-4 h-4 accent-primary rounded cursor-pointer"
+                  className="w-5 h-5 accent-primary rounded cursor-pointer"
                 />
               </label>
 
-              <label className="flex items-center justify-between p-2.5 rounded-lg bg-surface-container-low border border-surface-container cursor-pointer hover:bg-surface-container transition-colors">
-                <div className="flex items-center gap-2 text-[13px] font-medium text-on-surface">
-                  <span className="material-symbols-outlined text-tertiary text-[18px]">
+              <label className="min-h-[50px] flex items-center justify-between p-3 rounded-xl bg-white border border-surface-container cursor-pointer hover:bg-surface-container-low transition-colors">
+                <div className="flex items-center gap-2.5 text-[13px] font-semibold text-on-surface">
+                  <span className="material-symbols-outlined text-blue-700 text-[20px]">
                     ev_station
                   </span>
-                  <span>EV Charging Available</span>
+                  <div>
+                    <span>Electric Vehicle (EV) Chargers</span>
+                    <span className="block text-[11px] text-secondary font-normal">
+                      Superchargers & Type-2 points
+                    </span>
+                  </div>
                 </div>
                 <input
                   type="checkbox"
                   checked={filters.evOnly}
                   onChange={(e) => onUpdateFilters({ evOnly: e.target.checked })}
-                  className="w-4 h-4 accent-primary rounded cursor-pointer"
+                  className="w-5 h-5 accent-primary rounded cursor-pointer"
                 />
               </label>
 
-              <label className="flex items-center justify-between p-2.5 rounded-lg bg-surface-container-low border border-surface-container cursor-pointer hover:bg-surface-container transition-colors">
-                <div className="flex items-center gap-2 text-[13px] font-medium text-on-surface">
-                  <span className="material-symbols-outlined text-lot-available text-[18px]">
+              <label className="min-h-[50px] flex items-center justify-between p-3 rounded-xl bg-white border border-surface-container cursor-pointer hover:bg-surface-container-low transition-colors">
+                <div className="flex items-center gap-2.5 text-[13px] font-semibold text-on-surface">
+                  <span className="material-symbols-outlined text-emerald-700 text-[20px]">
                     timer
                   </span>
-                  <span>15m+ Extended Grace Period</span>
+                  <div>
+                    <span>15m Extended Grace Period</span>
+                    <span className="block text-[11px] text-secondary font-normal">
+                      Extra pickup & dropoff buffer
+                    </span>
+                  </div>
                 </div>
                 <input
                   type="checkbox"
                   checked={filters.minGracePeriod}
                   onChange={(e) => onUpdateFilters({ minGracePeriod: e.target.checked })}
-                  className="w-4 h-4 accent-primary rounded cursor-pointer"
+                  className="w-5 h-5 accent-primary rounded cursor-pointer"
                 />
               </label>
             </div>
@@ -130,10 +171,10 @@ export const FilterModal: React.FC<FilterModalProps> = ({
 
           {/* Height Clearance */}
           <div>
-            <label className="block text-[11px] uppercase font-bold text-secondary tracking-wider mb-2">
+            <label className="block text-[11px] uppercase font-bold text-secondary tracking-wider mb-2.5">
               Vehicle Height Clearance
             </label>
-            <div className="flex gap-2">
+            <div className="grid grid-cols-4 gap-2">
               {['Any', '1.9m+', '2.0m+', '2.1m+'].map((h) => {
                 const isSelected = filters.maxHeightFilter === h;
                 return (
@@ -141,10 +182,10 @@ export const FilterModal: React.FC<FilterModalProps> = ({
                     key={h}
                     type="button"
                     onClick={() => onUpdateFilters({ maxHeightFilter: h })}
-                    className={`flex-1 py-1.5 rounded-lg border text-center text-[12px] font-medium transition-all ${
+                    className={`min-h-[44px] rounded-xl border text-center text-[13px] font-semibold transition-all focus:outline-none focus:ring-2 focus:ring-primary/40 ${
                       isSelected
-                        ? 'border-primary bg-primary text-white font-semibold shadow-xs'
-                        : 'border-surface-container bg-surface-container-low text-secondary hover:text-on-surface'
+                        ? 'border-primary bg-primary text-white shadow-xs'
+                        : 'border-surface-container bg-white text-secondary hover:text-on-surface hover:bg-surface-container-low'
                     }`}
                   >
                     {h}
@@ -156,20 +197,22 @@ export const FilterModal: React.FC<FilterModalProps> = ({
         </div>
 
         {/* Footer */}
-        <div className="p-3 border-t border-surface-container bg-surface-container-low/30 flex items-center gap-2">
+        <div className="p-4 border-t border-surface-container bg-surface-container-low/40 flex items-center gap-3">
           <button
             type="button"
             onClick={onResetFilters}
-            className="px-4 h-10 rounded-lg border border-surface-container text-secondary hover:text-on-surface font-headline font-semibold text-[13px] transition-colors"
+            className="px-5 h-11 rounded-xl bg-white border border-surface-container text-secondary hover:text-on-surface font-headline font-semibold text-[13px] transition-colors focus:outline-none focus:ring-2 focus:ring-primary/40 shadow-2xs"
           >
             Reset
           </button>
           <button
             type="button"
             onClick={onClose}
-            className="flex-1 h-10 rounded-lg bg-primary hover:bg-primary-hover text-white font-headline font-semibold text-[13px] shadow-xs transition-colors"
+            className="flex-1 h-11 rounded-xl bg-primary hover:bg-primary-hover text-white font-headline font-semibold text-[13px] shadow-xs transition-colors focus:outline-none focus:ring-2 focus:ring-primary/40"
           >
-            Apply Filters
+            {matchingCount !== undefined
+              ? `Show ${matchingCount} Carparks`
+              : 'Apply Filters'}
           </button>
         </div>
       </div>
