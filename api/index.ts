@@ -1,13 +1,15 @@
 import type { Request, Response } from 'express';
-import carparkAvailabilityHandler from './carpark-availability';
-
-export { carparkAvailabilityHandler };
 
 export default async function apiIndex(req: Request | any, res: Response | any) {
   return res.status(200).json({
     status: 'online',
     title: 'sgCarMart Singapore Carpark Availability API',
     endpoints: {
+      health: {
+        path: '/api/health',
+        method: 'GET',
+        description: 'Service health check and LTA DataMall configuration status',
+      },
       carparkAvailability: {
         path: '/api/carpark-availability',
         method: 'GET',

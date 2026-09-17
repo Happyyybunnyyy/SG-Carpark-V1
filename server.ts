@@ -4,6 +4,7 @@ import dotenv from 'dotenv';
 import { createServer as createViteServer } from 'vite';
 import carparkAvailabilityHandler from './api/carpark-availability';
 import apiIndex from './api/index';
+import healthHandler from './api/health';
 
 // Load environment variables from .env
 dotenv.config();
@@ -16,18 +17,7 @@ async function startServer() {
 
   // API Routes (Mounted first before Vite SPA fallback)
   app.get('/api', apiIndex);
-
-  app.get('/api/health', (req, res) => {
-    res.json({
-      status: 'ok',
-      hasLtaKey: Boolean(
-        process.env.LTA_DATAMALL_ACCOUNT_KEY ||
-        process.env.ACCOUNT_KEY ||
-        process.env.LTA_ACCOUNT_KEY
-      ),
-      timestamp: new Date().toISOString(),
-    });
-  });
+  app.get('/api/health', healthHandler);
 
   // Serverless endpoint for LTA DataMall CarParkAvailabilityv2
   app.all('/api/carpark-availability', carparkAvailabilityHandler);
