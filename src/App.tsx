@@ -28,7 +28,42 @@ export default function App() {
   const [searchQuery, setSearchQuery] = useState<string>('Orchard');
   const [selectedZone, setSelectedZone] = useState<string>('Orchard / Somerset');
   const [selectedVehicle, setSelectedVehicle] = useState<VehicleType>('cars');
-  const [activeTab, setActiveTab] = useState<TabType>('carparks');
+  const [activeTab, setActiveTab] = useState<TabType>(() => {
+    if (typeof window !== 'undefined' && window.location.hash === '#talk-to-us') {
+      return 'talk-to-us';
+    }
+    return 'carparks';
+  });
+
+  // Handle URL hash changes for direct deep linking (#talk-to-us)
+  useEffect(() => {
+    const handleHashChange = () => {
+      if (typeof window !== 'undefined') {
+        if (window.location.hash === '#talk-to-us') {
+          setActiveTab('talk-to-us');
+        } else if (window.location.hash === '' || window.location.hash === '#carparks') {
+          setActiveTab('carparks');
+        }
+      }
+    };
+    window.addEventListener('hashchange', handleHashChange);
+    return () => window.removeEventListener('hashchange', handleHashChange);
+  }, []);
+
+  const handleTabChange = (tab: TabType) => {
+    setActiveTab(tab);
+    try {
+      if (tab === 'talk-to-us') {
+        window.location.hash = '#talk-to-us';
+      } else if (typeof window !== 'undefined' && window.location.hash === '#talk-to-us') {
+        if (typeof window.history?.pushState === 'function') {
+          window.history.pushState('', document.title, window.location.pathname + window.location.search);
+        } else {
+          window.location.hash = '';
+        }
+      }
+    } catch {}
+  };
   const [simulatedTimeLabel, setSimulatedTimeLabel] = useState<string>('Now 2:30 PM');
   const [simulatedPeriodType, setSimulatedPeriodType] = useState<'day' | 'evening' | 'weekend'>('day');
   const [simulatedDurationHours, setSimulatedDurationHours] = useState<number>(2);
@@ -427,14 +462,14 @@ export default function App() {
         )}
 
         {activeTab === 'talk-to-us' && (
-          <TalkToUsView onBackToCarparks={() => setActiveTab('carparks')} />
+          <TalkToUsView onBackToCarparks={() => handleTabChange('carparks')} />
         )}
       </main>
 
       {/* Fixed Bottom Navigation */}
       <BottomNav
         activeTab={activeTab}
-        onTabChange={setActiveTab}
+        onTabChange={handleTabChange}
         savedCount={savedIds.length}
       />
 
