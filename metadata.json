@@ -1,0 +1,6 @@
+{
+  "name": "sgCarMart Carpark Rates",
+  "description": "Singapore live carpark rates, availability lots, ERP gantry tracker, and parking cost calculator.",
+  "requestFramePermissions": ["geolocation"],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
